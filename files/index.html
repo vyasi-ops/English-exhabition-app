@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Idiom Café</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Landing -->
+<div id="landingScreen" class="screen active">
+  <div class="landing-wrap">
+    <p class="cafe-sign">Idiom Café</p>
+    <p class="cafe-sub">today's specials, served in plain English</p>
+    <button class="btn enter-btn" id="enterBtn">☕ Enter the Café</button>
+  </div>
+</div>
+
+<!-- Today's Menu -->
+<div id="menuScreen" class="screen">
+  <div class="screen-inner">
+    <p class="section-title">Today's Menu</p>
+    <p class="section-desc">Here are the 7 idioms you will learn in this session.</p>
+    <div id="menuList" class="menu-list"></div>
+    <button class="btn" id="startLearn">Start Learning →</button>
+  </div>
+</div>
+
+<!-- Learn: Flashcards -->
+<div id="learnScreen" class="screen">
+  <div class="screen-inner">
+    <p class="section-title">Learn</p>
+    <p class="section-desc">Tap the card to flip it.</p>
+    <p id="cardCounter" class="counter">1 / 7</p>
+    <div class="card-container">
+      <div class="flashcard" id="flashcard">
+        <div class="card-inner">
+          <div class="card-face card-front">
+            <p class="card-front-name" id="cardFrontName"></p>
+            <p class="card-hint">tap to see meaning</p>
+          </div>
+          <div class="card-face card-back">
+            <p class="card-back-label">Meaning</p>
+            <p class="card-back-meaning" id="cardBackMeaning"></p>
+            <p class="card-back-example" id="cardBackExample"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-nav">
+      <button class="btn ghost" id="prevCard">← Back</button>
+      <button class="btn" id="nextCard">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MCQ -->
+<div id="mcqScreen" class="screen">
+  <div class="screen-inner">
+    <p class="section-title">Quiz: MCQs</p>
+    <div class="progress-row">
+      <span id="mcqProgress">Question 1 of 14</span>
+      <span class="score-pill" id="mcqScoreDisplay">Score: 0</span>
+    </div>
+    <div id="mcqBody"></div>
+  </div>
+</div>
+
+<!-- Fill in the Blanks -->
+<div id="fitbScreen" class="screen">
+  <div class="screen-inner">
+    <p class="section-title">Quiz: Fill in the Blanks</p>
+    <div class="progress-row">
+      <span id="fitbProgress">Question 1 of 14</span>
+      <span class="score-pill" id="fitbScoreDisplay">Score: 0</span>
+    </div>
+    <div id="fitbBody"></div>
+  </div>
+</div>
+
+<!-- Final Score -->
+<div id="finalScreen" class="screen">
+  <div class="screen-inner center-content">
+    <p class="section-title">Your Score</p>
+    <div id="finalBody"></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
