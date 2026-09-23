@@ -3,45 +3,89 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Idiom Café</title>
+<meta name="theme-color" content="#EA580C">
+<title>StudyVerse · Idiom Practice</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- Landing -->
-<div id="landingScreen" class="screen active">
-  <div class="landing-wrap">
-    <p class="cafe-sign">Idiom Café</p>
-    <p class="cafe-sub">today's specials, served in plain English</p>
-    <button class="btn enter-btn" id="enterBtn">☕ Enter the Café</button>
-  </div>
-</div>
+<!-- SVG defs for the score ring gradient -->
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <defs>
+    <linearGradient id="svRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F97316"/>
+      <stop offset="60%" stop-color="#EA580C"/>
+      <stop offset="100%" stop-color="#9A3412"/>
+    </linearGradient>
+  </defs>
+</svg>
 
-<!-- Today's Menu -->
-<div id="menuScreen" class="screen">
-  <div class="screen-inner">
-    <p class="section-title">Today's Menu</p>
-    <p class="section-desc">Here are the 7 idioms you will learn in this session.</p>
+<div class="app">
+
+  <!-- Top bar -->
+  <header class="appbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">📚</span>
+      <span class="brand-name">Study<span>Verse</span></span>
+    </div>
+    <span class="chip accent" id="sessionChip">Idiom Practice</span>
+  </header>
+
+  <!-- Landing -->
+  <section id="landingScreen" class="screen active">
+    <div class="landing">
+      <p class="landing-badge">✦ Daily English Practice</p>
+      <h1 class="landing-title">Master idioms,<br><span class="hl">one session at a time.</span></h1>
+      <p class="landing-sub">Learn seven idioms with flashcards, then prove it with a two-part quiz. Short, focused, and tracked.</p>
+
+      <div class="landing-hero">
+        <p class="hero-kicker">Today's Session</p>
+        <p class="hero-head">Flashcards → MCQ → Fill in the Blanks</p>
+        <div class="hero-stats">
+          <div class="hero-stat"><b>7</b><span>Idioms</span></div>
+          <div class="hero-stat"><b>~6</b><span>Minutes</span></div>
+          <div class="hero-stat"><b>28</b><span>Questions</span></div>
+        </div>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature"><div class="feature-icon">🃏</div><p>Flip Cards</p></div>
+        <div class="feature"><div class="feature-icon">✅</div><p>Instant Feedback</p></div>
+        <div class="feature"><div class="feature-icon">📈</div><p>Score Report</p></div>
+      </div>
+
+      <button class="btn block" id="enterBtn">Start Session →</button>
+    </div>
+  </section>
+
+  <!-- Today's Menu -->
+  <section id="menuScreen" class="screen">
+    <div class="section-head">
+      <h2 class="section-title">Today's Lineup</h2>
+      <p class="section-desc">These are the 7 idioms you will learn in this session.</p>
+    </div>
     <div id="menuList" class="menu-list"></div>
-    <button class="btn" id="startLearn">Start Learning →</button>
-  </div>
-</div>
+    <button class="btn block" id="startLearn">Start Learning →</button>
+  </section>
 
-<!-- Learn: Flashcards -->
-<div id="learnScreen" class="screen">
-  <div class="screen-inner">
-    <p class="section-title">Learn</p>
-    <p class="section-desc">Tap the card to flip it.</p>
+  <!-- Learn: Flashcards -->
+  <section id="learnScreen" class="screen">
+    <div class="section-head">
+      <h2 class="section-title">Learn</h2>
+      <p class="section-desc">Tap the card to flip it and reveal the meaning.</p>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="cardProgress"></div></div>
     <p id="cardCounter" class="counter">1 / 7</p>
     <div class="card-container">
-      <div class="flashcard" id="flashcard">
+      <div class="flashcard" id="flashcard" role="button" tabindex="0" aria-label="Flashcard, press to flip">
         <div class="card-inner">
           <div class="card-face card-front">
+            <p class="card-front-label">Idiom</p>
             <p class="card-front-name" id="cardFrontName"></p>
-            <p class="card-hint">tap to see meaning</p>
+            <p class="card-hint">Tap to see the meaning</p>
           </div>
           <div class="card-face card-back">
             <p class="card-back-label">Meaning</p>
@@ -55,39 +99,48 @@
       <button class="btn ghost" id="prevCard">← Back</button>
       <button class="btn" id="nextCard">Next →</button>
     </div>
-  </div>
-</div>
+  </section>
 
-<!-- MCQ -->
-<div id="mcqScreen" class="screen">
-  <div class="screen-inner">
-    <p class="section-title">Quiz: MCQs</p>
+  <!-- MCQ -->
+  <section id="mcqScreen" class="screen">
+    <div class="section-head">
+      <h2 class="section-title">Quiz · Multiple Choice</h2>
+      <p class="section-desc">Pick the single best answer.</p>
+    </div>
     <div class="progress-row">
       <span id="mcqProgress">Question 1 of 14</span>
       <span class="score-pill" id="mcqScoreDisplay">Score: 0</span>
     </div>
+    <div class="progress-track"><div class="progress-fill" id="mcqProgressFill"></div></div>
     <div id="mcqBody"></div>
-  </div>
-</div>
+  </section>
 
-<!-- Fill in the Blanks -->
-<div id="fitbScreen" class="screen">
-  <div class="screen-inner">
-    <p class="section-title">Quiz: Fill in the Blanks</p>
+  <!-- Fill in the Blanks -->
+  <section id="fitbScreen" class="screen">
+    <div class="section-head">
+      <h2 class="section-title">Quiz · Fill in the Blanks</h2>
+      <p class="section-desc">Complete each sentence with the right idiom.</p>
+    </div>
     <div class="progress-row">
       <span id="fitbProgress">Question 1 of 14</span>
       <span class="score-pill" id="fitbScoreDisplay">Score: 0</span>
     </div>
+    <div class="progress-track"><div class="progress-fill" id="fitbProgressFill"></div></div>
     <div id="fitbBody"></div>
-  </div>
-</div>
+  </section>
 
-<!-- Final Score -->
-<div id="finalScreen" class="screen">
-  <div class="screen-inner center-content">
-    <p class="section-title">Your Score</p>
-    <div id="finalBody"></div>
-  </div>
+  <!-- Final Score -->
+  <section id="finalScreen" class="screen">
+    <div class="center-content">
+      <div class="section-head" style="text-align:center">
+        <h2 class="section-title">Your Results</h2>
+        <p class="section-desc">Session summary and breakdown.</p>
+      </div>
+      <div id="finalBody" style="width:100%"></div>
+    </div>
+  </section>
+
+  <footer class="app-footer">StudyVerse · Warm Edition</footer>
 </div>
 
 <script src="data.js"></script>

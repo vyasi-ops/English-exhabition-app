@@ -32,13 +32,13 @@ document.getElementById('enterBtn').addEventListener('click', () => {
 
 // ---- Today's Menu ----
 function buildMenu() {
-  const list = document.getElementById('menuList');
-  list.innerHTML = '';
+  const menuList = document.getElementById('menuList');
+  menuList.innerHTML = '';
   sessionIdioms.forEach((idiom, i) => {
-    const li = document.createElement('div');
-    li.className = 'menu-item';
-    li.innerHTML = `<span class="menu-num">${i + 1}</span><span class="menu-name">${idiom.name}</span>`;
-    list.appendChild(li);
+    const item = document.createElement('div');
+    item.className = 'menu-item';
+    item.innerHTML = `<span class="menu-num">${i + 1}</span><span class="menu-name">${idiom.name}</span>`;
+    menuList.appendChild(item);
   });
 }
 
@@ -50,10 +50,20 @@ document.getElementById('startLearn').addEventListener('click', () => {
 });
 
 // ---- Flashcards ----
+const LETTERS = ['A', 'B', 'C', 'D'];
+
+function setProgress(id, done, total) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const pct = total > 0 ? Math.min(100, (done / total) * 100) : 0;
+  el.style.width = pct + '%';
+}
+
 function renderCard() {
   const idiom = sessionIdioms[cardIdx];
   const counter = document.getElementById('cardCounter');
   counter.textContent = `${cardIdx + 1} / ${sessionIdioms.length}`;
+  setProgress('cardProgress', cardIdx + 1, sessionIdioms.length);
 
   const card = document.getElementById('flashcard');
   card.classList.remove('flipped');
@@ -68,9 +78,14 @@ function renderCard() {
   document.getElementById('nextCard').textContent = isLast ? 'Start Quiz →' : 'Next →';
 }
 
-document.getElementById('flashcard').addEventListener('click', () => {
+function flipCard() {
   cardFlipped = !cardFlipped;
   document.getElementById('flashcard').classList.toggle('flipped', cardFlipped);
+}
+
+document.getElementById('flashcard').addEventListener('click', flipCard);
+document.getElementById('flashcard').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flipCard(); }
 });
 
 document.getElementById('prevCard').addEventListener('click', () => {
@@ -103,13 +118,15 @@ function startMCQ() {
 }
 
 function renderMCQ() {
-  document.getElementById('mcqProgress').textContent = `Question ${mcqIdx + 1} of ${mcqList.length}`;
+  document.getElementById('mcqProgress').textContent = `Question ${Math.min(mcqIdx + 1, mcqList.length)} of ${mcqList.length}`;
   document.getElementById('mcqScoreDisplay').textContent = `Score: ${mcqScore}`;
+  setProgress('mcqProgressFill', mcqIdx, mcqList.length);
 
   if (mcqIdx >= mcqList.length) {
+    setProgress('mcqProgressFill', mcqList.length, mcqList.length);
     document.getElementById('mcqBody').innerHTML = `
-      <div class="done-box">
-        <div class="done-title">MCQ Round Complete!</div>
+      <div class="card done-box">
+        <div class="done-title">Multiple Choice complete</div>
         <p>You scored ${mcqScore} out of ${mcqList.length}.</p>
         <button class="btn" id="startFITB">Continue to Fill in the Blanks →</button>
       </div>`;
@@ -119,24 +136,26 @@ function renderMCQ() {
 
   const q = mcqList[mcqIdx];
   const body = document.getElementById('mcqBody');
-  // shuffle option indices
+  // Shuffle option order; the answer position is kept only in this closure, never in the DOM.
   const indices = shuffle([0, 1, 2, 3]);
   const correctNewIdx = indices.indexOf(q.ans);
 
   body.innerHTML = `
     <div class="q-box">${q.q}</div>
     <div class="choices">
-      ${indices.map((origI, newI) => `<button class="choice-btn" data-idx="${newI}" data-correct="${origI === q.ans}">${q.opts[origI]}</button>`).join('')}
+      ${indices.map((origI, newI) => `<button class="choice-btn" data-idx="${newI}" data-letter="${LETTERS[newI]}">${q.opts[origI]}</button>`).join('')}
     </div>
     <div class="feedback-row"></div>`;
 
   body.querySelectorAll('.choice-btn').forEach(btn => {
     btn.addEventListener('click', () => {
+      const picked = Number(btn.dataset.idx);
+      const isRight = picked === correctNewIdx;
       body.querySelectorAll('.choice-btn').forEach(b => {
         b.disabled = true;
-        if (b.dataset.correct === 'true') b.classList.add('correct');
+        if (Number(b.dataset.idx) === correctNewIdx) b.classList.add('correct');
       });
-      if (btn.dataset.correct === 'true') {
+      if (isRight) {
         mcqScore++;
       } else {
         btn.classList.add('wrong');
@@ -168,10 +187,12 @@ function startFITB() {
 }
 
 function renderFITB() {
-  document.getElementById('fitbProgress').textContent = `Question ${fitbIdx + 1} of ${fitbList.length}`;
+  document.getElementById('fitbProgress').textContent = `Question ${Math.min(fitbIdx + 1, fitbList.length)} of ${fitbList.length}`;
   document.getElementById('fitbScoreDisplay').textContent = `Score: ${fitbScore}`;
+  setProgress('fitbProgressFill', fitbIdx, fitbList.length);
 
   if (fitbIdx >= fitbList.length) {
+    setProgress('fitbProgressFill', fitbList.length, fitbList.length);
     showFinalScore();
     return;
   }
@@ -179,6 +200,7 @@ function renderFITB() {
   const q = fitbList[fitbIdx];
   const body = document.getElementById('fitbBody');
   const indices = shuffle([0, 1, 2, 3]);
+  const correctNewIdx = indices.indexOf(q.ans);
 
   // Replace ___ with a styled blank
   const sentence = q.q.replace('___', '<span class="blank-slot">______</span>');
@@ -186,17 +208,19 @@ function renderFITB() {
   body.innerHTML = `
     <div class="story-box">${sentence}</div>
     <div class="choices two-col">
-      ${indices.map((origI, newI) => `<button class="choice-btn" data-idx="${newI}" data-correct="${origI === q.ans}">${q.opts[origI]}</button>`).join('')}
+      ${indices.map((origI, newI) => `<button class="choice-btn" data-idx="${newI}" data-letter="${LETTERS[newI]}">${q.opts[origI]}</button>`).join('')}
     </div>
     <div class="feedback-row"></div>`;
 
   body.querySelectorAll('.choice-btn').forEach(btn => {
     btn.addEventListener('click', () => {
+      const picked = Number(btn.dataset.idx);
+      const isRight = picked === correctNewIdx;
       body.querySelectorAll('.choice-btn').forEach(b => {
         b.disabled = true;
-        if (b.dataset.correct === 'true') b.classList.add('correct');
+        if (Number(b.dataset.idx) === correctNewIdx) b.classList.add('correct');
       });
-      if (btn.dataset.correct === 'true') {
+      if (isRight) {
         fitbScore++;
         const blank = body.querySelector('.blank-slot');
         if (blank) blank.textContent = q.opts[q.ans];
@@ -217,28 +241,53 @@ function renderFITB() {
 }
 
 // ---- Final Score ----
+const RING_CIRC = 2 * Math.PI * 70; // r = 70
+
 function showFinalScore() {
   const total = mcqList.length + fitbList.length;
   const score = mcqScore + fitbScore;
   const pct = Math.round((score / total) * 100);
 
-  let emoji = '☕';
-  let message = 'Keep practising!';
-  if (pct >= 90) { emoji = '🏆'; message = 'Master Chef! You really know your idioms!'; }
-  else if (pct >= 70) { emoji = '⭐'; message = 'Great job! You are getting the hang of it!'; }
-  else if (pct >= 50) { emoji = '👍'; message = 'Not bad! A few more rounds and you will ace it!'; }
+  let emoji = '💪';
+  let message = 'Keep practising — every round makes it stick.';
+  if (pct >= 90) { emoji = '🏆'; message = 'Outstanding! You have really mastered these idioms.'; }
+  else if (pct >= 70) { emoji = '⭐'; message = 'Great job! You are getting the hang of it.'; }
+  else if (pct >= 50) { emoji = '👍'; message = 'Good effort — a few more rounds and you will ace it.'; }
 
   document.getElementById('finalBody').innerHTML = `
-    <div class="final-emoji">${emoji}</div>
-    <div class="final-big">${score} / ${total}</div>
-    <div class="final-pct">${pct}%</div>
-    <p class="final-msg">${message}</p>
-    <div class="score-breakdown">
-      <div class="sb-row"><span>MCQs</span><span>${mcqScore} / ${mcqList.length}</span></div>
-      <div class="sb-row"><span>Fill in the Blanks</span><span>${fitbScore} / ${fitbList.length}</span></div>
+    <div class="ring-wrap">
+      <svg class="ring" viewBox="0 0 160 160" aria-hidden="true">
+        <circle class="ring-bg" cx="80" cy="80" r="70"></circle>
+        <circle class="ring-fg" id="ringFg" cx="80" cy="80" r="70"></circle>
+      </svg>
+      <div class="ring-center">
+        <div class="final-emoji">${emoji}</div>
+        <div class="final-big">${score} / ${total}</div>
+        <div class="final-pct">${pct}% ACCURACY</div>
+      </div>
     </div>
-    <button class="btn" id="playAgain">Play Again</button>`;
+    <p class="final-msg" style="margin-left:auto;margin-right:auto">${message}</p>
+    <div class="score-breakdown">
+      <div class="sb-row"><span>Multiple Choice</span><span>${mcqScore} / ${mcqList.length}</span></div>
+      <div class="sb-row"><span>Fill in the Blanks</span><span>${fitbScore} / ${fitbList.length}</span></div>
+      <div class="sb-row"><span>Idioms Practised</span><span>${sessionIdioms.length}</span></div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;width:100%">
+      <button class="btn ghost" id="reviewMenu">Review Lineup</button>
+      <button class="btn" id="playAgain">Play Again →</button>
+    </div>`;
+
+  show('finalScreen');
+
+  const ring = document.getElementById('ringFg');
+  ring.style.strokeDasharray = RING_CIRC;
+  ring.style.strokeDashoffset = RING_CIRC;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      ring.style.strokeDashoffset = RING_CIRC * (1 - pct / 100);
+    });
+  });
 
   document.getElementById('playAgain').addEventListener('click', () => show('landingScreen'));
-  show('finalScreen');
+  document.getElementById('reviewMenu').addEventListener('click', () => { buildMenu(); show('menuScreen'); });
 }
